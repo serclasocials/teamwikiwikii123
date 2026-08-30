@@ -45,17 +45,13 @@ MOTIVATIONAL_PHRASES = [
 class CloudSync:
     @staticmethod
     def load_data():
-        if not JSONBIN_BIN_ID or not JSONBIN_MASTER_KEY:
+        if not JSONBIN_BIN_ID:
             return {}
         try:
             url = f"https://api.jsonbin.io/v3/b/{JSONBIN_BIN_ID}/latest"
-            req = urllib.request.Request(
-                url,
-                headers={
-                    "X-Master-Key": JSONBIN_MASTER_KEY,
-                    "X-Access-Key": "",
-                },
-            )
+            # Removed the headers completely for loading since the bin is Public
+            req = urllib.request.Request(url)
+            
             with urllib.request.urlopen(req, timeout=5) as response:
                 res = json.loads(response.read().decode())
                 return res.get("record", {})
@@ -70,6 +66,8 @@ class CloudSync:
         try:
             url = f"https://api.jsonbin.io/v3/b/{JSONBIN_BIN_ID}"
             req_data = json.dumps(data).encode("utf-8")
+            
+            # Saving still requires the Master Key, even for a Public bin
             req = urllib.request.Request(
                 url,
                 data=req_data,
@@ -84,7 +82,6 @@ class CloudSync:
         except Exception as e:
             st.toast(f"Cloud save error: {e}", icon="⚠️")
             return False
-
 # ============================================================
 # CUSTOM CSS (Mimics Tkinter's Glassy Dark Mode & Bubbles)
 # ============================================================
