@@ -15,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-JSONBIN_BIN_ID = "6a94b6b1da38895dfe243833"
+JSONBIN_BIN_ID = "6a94bc25da38895dfe243f0a"
 JSONBIN_MASTER_KEY = "$2a$10$1hHtPNPdRRPEIe3x2xb8DO/ARn1rKBfCaBk2aRg.mAdgJsK7aEDlu"
 ACCESS_PASSWORD = "wikiwiki"
 
