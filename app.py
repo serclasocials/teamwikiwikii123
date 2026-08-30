@@ -1,102 +1,16 @@
+import streamlit as st
 import json
-import math
 import random
-import time
 import urllib.error
 import urllib.request
-import streamlit as st
+import pandas as pd
 
 # ============================================================
-# PAGE CONFIGURATION
-# ============================================================
-st.set_page_config(page_title="CLUSTER ARLEN | TEAM REEYAAA", page_icon="📊", layout="wide")
-
-# ============================================================
-# CLOUD CONFIGURATION (JSONBin.io) & SECURITY
+# CLOUD CONFIGURATION & SECURITY
 # ============================================================
 JSONBIN_BIN_ID = "6a939368da38895dfe21c244"
-JSONBIN_MASTER_KEY = ("$2a$10$N6A/7tTzu0bIYUNeer5RveMMym14VTQdspb2Rd64c80KH3WZVKIXa")
+JSONBIN_MASTER_KEY = "$2a$10$N6A/7tTzu0bIYUNeer5RveMMym14VTQdspb2Rd64c80KH3WZVKIXa"
 ACCESS_PASSWORD = "wikiwiki123"
-
-
-class CloudSync:
-
-  @staticmethod
-  def load_data():
-    if not JSONBIN_BIN_ID or not JSONBIN_MASTER_KEY:
-      return None
-    try:
-      url = f"https://api.jsonbin.io/v3/b/{JSONBIN_BIN_ID}/latest"
-      req = urllib.request.Request(
-          url,
-          headers={
-              "X-Master-Key": JSONBIN_MASTER_KEY,
-              "X-Access-Key": "",
-          },
-      )
-      with urllib.request.urlopen(req, timeout=5) as response:
-        res = json.loads(response.read().decode())
-        return res.get("record", {})
-    except Exception as e:
-      return None
-
-  @staticmethod
-  def save_data(data):
-    if not JSONBIN_BIN_ID or not JSONBIN_MASTER_KEY:
-      return False
-    try:
-      url = f"https://api.jsonbin.io/v3/b/{JSONBIN_BIN_ID}"
-      req_data = json.dumps(data).encode("utf-8")
-      req = urllib.request.Request(
-          url,
-          data=req_data,
-          method="PUT",
-          headers={
-              "Content-Type": "application/json",
-              "X-Master-Key": JSONBIN_MASTER_KEY,
-          },
-      )
-      with urllib.request.urlopen(req, timeout=5) as response:
-        return True
-    except Exception as e:
-      return False
-
-
-# ============================================================
-# CUSTOM STYLING (MATCHING ORIGINAL DARK GLASS DESIGN)
-# ============================================================
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #08080D;
-        color: #FFFFFF;
-    }
-    .glass-card {
-        background-color: #151520;
-        border: 1px solid #303044;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-        margin-bottom: 5px;
-    }
-    .motivation-box {
-        background-color: #1D1D2B;
-        border: 1px solid #5B21B6;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-        color: #FACC15;
-        font-style: italic;
-        font-weight: bold;
-        font-size: 1.1rem;
-        margin-bottom: 15px;
-        margin-top: 10px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 # ============================================================
 # MOTIVATIONAL PHRASES
@@ -114,386 +28,290 @@ MOTIVATIONAL_PHRASES = [
     "Strong performance starts with discipline.",
     "Every release brings you closer to your target.",
     "Stay calm, stay focused, and keep improving.",
-    "Wikiiii-wikiiiiiiiiiiiiii.",
-    "Magpag-pag, kung maraming DROP!",
     "Your effort today builds your performance tomorrow.",
     "Do not stop. Keep working toward your target.",
     "One good call can start a better streak.",
-    "Wikiiii-wikiiiiiiiiiiiiii.",
-    "Magpag-pag, kung maraming DROP!",
     "Keep your momentum going.",
     "Believe in your progress and continue improving.",
 ]
 
 # ============================================================
-# SESSION STATE INITIALIZATION & CLOUD SYNC
+# CLOUD SYNC CLASS
 # ============================================================
-if "authenticated" not in st.session_state:
-  st.session_state.authenticated = False
+class CloudSync:
+    @staticmethod
+    def load_data():
+        if not JSONBIN_BIN_ID or not JSONBIN_MASTER_KEY:
+            return None
+        try:
+            url = f"https://api.jsonbin.io/v3/b/{JSONBIN_BIN_ID}/latest"
+            req = urllib.request.Request(
+                url,
+                headers={"X-Master-Key": JSONBIN_MASTER_KEY, "X-Access-Key": ""},
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                res = json.loads(response.read().decode())
+                return res.get("record", {})
+        except Exception as e:
+            return None
 
-if "members" not in st.session_state:
-  cloud_data = CloudSync.load_data()
-  st.session_state.members = (
-      cloud_data if isinstance(cloud_data, dict) else {}
-  )
-
-if "current_motivation" not in st.session_state:
-  st.session_state.current_motivation = random.choice(MOTIVATIONAL_PHRASES)
-
-# ============================================================
-# AUTHENTICATION SCREEN
-# ============================================================
-if not st.session_state.authenticated:
-  st.markdown("<br><br><br>", unsafe_allow_html=True)
-  col1, col2, col3 = st.columns([1, 1.2, 1])
-  with col2:
-    st.markdown(
-        """
-            <div style="background-color: #151520; border: 1px solid #303044; padding: 30px; border-radius: 12px; text-align: center;">
-                <h2 style="color: #FFFFFF; margin-bottom: 0px;">CLUSTER ARLEN</h2>
-                <p style="color: #A1A1AA; font-size: 0.9rem;">Enter Password to Access System</p>
-            </div>
-            """,
-        unsafe_allow_html=True,
-    )
-    pass_input = st.text_input(
-        "Password", type="password", label_visibility="collapsed"
-    )
-    if st.button("LOGIN", use_container_width=True):
-      if pass_input == ACCESS_PASSWORD:
-        st.session_state.authenticated = True
-        st.rerun()
-      else:
-        st.error("Incorrect Password. Please try again.")
-  st.stop()
-
-# ============================================================
-# MAIN HEADER
-# ============================================================
-st.markdown(
-    """
-    <div style="text-align: center; margin-bottom: 10px;">
-        <h1 style="color: #FFFFFF; font-size: 2.3rem; margin-bottom: 0px;">CLUSTER ARLEN</h1>
-        <h3 style="color: #A78BFA; font-size: 1.2rem; margin-top: 0px;">TEAM REEYAAA WIKI-WIKIIIIII</h3>
-        <p style="color: #A1A1AA; font-size: 0.85rem;">Programmed by: @CLA TECHFORGE | Clarence Gabriel Obida | @serclasocials</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
+    @staticmethod
+    def save_data(data):
+        if not JSONBIN_BIN_ID or not JSONBIN_MASTER_KEY:
+            return False
+        try:
+            url = f"https://api.jsonbin.io/v3/b/{JSONBIN_BIN_ID}"
+            req_data = json.dumps(data).encode("utf-8")
+            req = urllib.request.Request(
+                url,
+                data=req_data,
+                method="PUT",
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Master-Key": JSONBIN_MASTER_KEY,
+                },
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                return True
+        except Exception as e:
+            return False
 
 # ============================================================
-# HELPER FUNCTIONS
+# METRICS CALCULATION
 # ============================================================
 def calculate_metrics(release, unrelease):
-  total = release + unrelease
-  percentage = 0 if total == 0 else (release / total) * 100
-  deficit = max(0, (unrelease * 6) - release)
-  return percentage, deficit
-
-
-def sync_to_cloud():
-  CloudSync.save_data(st.session_state.members)
-
-
-# ============================================================
-# CONTROLS BAR (RESET ALL & ADD MEMBER)
-# ============================================================
-ctrl_col1, ctrl_col2, ctrl_col3 = st.columns([5, 1.3, 1.7])
-with ctrl_col2:
-  if st.button("RESET ALL", use_container_width=True):
-    confirm_wipe = st.checkbox("Check to confirm full reset")
-    if confirm_wipe:
-      st.session_state.members = {}
-      CloudSync.save_data({})
-      st.success("All data wiped successfully!")
-      st.rerun()
-
-with ctrl_col3:
-  new_member_name = st.text_input(
-      "New Member Name",
-      placeholder="Enter name...",
-      label_visibility="collapsed",
-  )
-if st.button("+ COUNT ME IN"):
-  if new_member_name:
-    clean_name = new_member_name.strip()
-    if clean_name in st.session_state.members:
-      st.warning("This team member already exists.")
+    total = release + unrelease
+    percentage = 0 if total == 0 else (release / total) * 100
+    deficit = max(0, (unrelease * 6) - release)
+    
+    if release == 0 and unrelease == 0:
+        status = "NO DATA"
+    elif percentage >= 85:
+        status = "PASSING"
     else:
-      st.session_state.members[clean_name] = {
-          "release": 0,
-          "unrelease": 0,
-          "transfer": 0,
-      }
-      sync_to_cloud()
-      st.rerun()
-
-st.markdown("<hr style='margin: 10px 0px;'>", unsafe_allow_html=True)
+        status = "BELOW TARGET"
+        
+    return percentage, deficit, status
 
 # ============================================================
-# TABS SETUP (MATCHING ORIGINAL NOTEBOOK TABS LAYOUT)
+# CUSTOM CSS (THEME & BUBBLES)
 # ============================================================
-tab_names = ["LEADER DASHBOARD"] + list(st.session_state.members.keys())
-tabs = st.tabs(tab_names)
-
-# ============================================================
-# TAB 1: LEADER DASHBOARD
-# ============================================================
-with tabs[0]:
-  st.markdown(
-      """
-        <div style="text-align: center;">
-            <h2 style="color: #FFFFFF; margin-bottom: 0px;">TEAM PERFORMANCE DASHBOARD</h2>
-            <p style="color: #A78BFA; font-weight: bold; font-size: 0.9rem;">LIVE TEAM METRICS OVERVIEW & RANKINGS</p>
-        </div>
-        """,
-      unsafe_allow_html=True,
-  )
-
-  total_members = len(st.session_state.members)
-  tot_release = sum(d["release"] for d in st.session_state.members.values())
-  tot_unrelease = sum(d["unrelease"] for d in st.session_state.members.values())
-  tot_transfer = sum(d["transfer"] for d in st.session_state.members.values())
-
-  tot_deficit = 0
-  member_stats = []
-  for name, data in st.session_state.members.items():
-    perc, df = calculate_metrics(data["release"], data["unrelease"])
-    tot_deficit += df
-    status = (
-        "NO DATA"
-        if data["release"] == 0 and data["unrelease"] == 0
-        else "PASSING"
-        if perc >= 85
-        else "BELOW TARGET"
-    )
-    member_stats.append({
-        "name": name,
-        "release": data["release"],
-        "unrelease": data["unrelease"],
-        "transfer": data["transfer"],
-        "deficit": df,
-        "percentage": perc,
-        "status": status,
-    })
-
-  tot_calls = tot_release + tot_unrelease
-  group_percentage = (
-      0 if tot_calls == 0 else (tot_release / tot_calls) * 100
-  )
-
-  # Summary Cards
-  c1, c2, c3, c4, c5 = st.columns(5)
-  with c1:
-    st.markdown(
-        f'<div class="glass-card"><p style="color:#A1A1AA;font-size:0.75rem;margin:0;">MEMBERS</p><h3'
-        f' style="color:#A78BFA;margin:0;">{total_members}</h3></div>',
-        unsafe_allow_html=True,
-    )
-  with c2:
-    st.markdown(
-        f'<div class="glass-card"><p style="color:#A1A1AA;font-size:0.75rem;margin:0;">RELEASE</p><h3'
-        f' style="color:#22C55E;margin:0;">{tot_release}</h3></div>',
-        unsafe_allow_html=True,
-    )
-  with c3:
-    st.markdown(
-        f'<div class="glass-card"><p style="color:#A1A1AA;font-size:0.75rem;margin:0;">UNRELEASE</p><h3'
-        f' style="color:#EF4444;margin:0;">{tot_unrelease}</h3></div>',
-        unsafe_allow_html=True,
-    )
-  with c4:
-    st.markdown(
-        f'<div class="glass-card"><p style="color:#A1A1AA;font-size:0.75rem;margin:0;">DEFICIT</p><h3'
-        f' style="color:#FACC15;margin:0;">{tot_deficit}</h3></div>',
-        unsafe_allow_html=True,
-    )
-  with c5:
-    st.markdown(
-        f'<div class="glass-card"><p style="color:#A1A1AA;font-size:0.75rem;margin:0;">GROUP'
-        f' %</p><h3 style="color:#A78BFA;margin:0;">{group_percentage:.2f}%</h3></div>',
-        unsafe_allow_html=True,
-    )
-
-  # Motivation Panel
-  st.markdown(
-      f'<div'
-      f' class="motivation-box">{st.session_state.current_motivation}</div>',
-      unsafe_allow_html=True,
-  )
-
-  # Rankings Table
-  st.markdown("### 📋 Team Member Rankings")
-  if member_stats:
-    member_stats.sort(key=lambda x: x["percentage"], reverse=True)
-    table_data = []
-    for rank, stats in enumerate(member_stats, start=1):
-      table_data.append({
-          "Rank": f"#{rank}",
-          "Team Member": stats["name"],
-          "Release": stats["release"],
-          "Unrelease": stats["unrelease"],
-          "Transfer": stats["transfer"],
-          "Deficit": stats["deficit"],
-          "Percentage": f"{stats['percentage']:.2f}%",
-          "Status": stats["status"],
-      })
-    st.dataframe(table_data, use_container_width=True, hide_index=True)
-  else:
-    st.info(
-        "No team members added yet. Use '+ COUNT ME IN' to add team members."
-    )
+def inject_custom_css():
+    st.markdown("""
+    <style>
+    /* Dark Glassmorphism Theme */
+    .stApp {
+        background-color: #08080D;
+        color: #FFFFFF;
+    }
+    
+    /* Bubble Animation */
+    .bubbles-container {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .bubble {
+        position: absolute;
+        bottom: -50px;
+        background-color: rgba(139, 92, 246, 0.15);
+        border-radius: 50%;
+        animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        80% { opacity: 0.8; }
+        100% { transform: translateY(-100vh) scale(1.5); opacity: 0; }
+    }
+    
+    /* Content over bubbles */
+    .main-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Metric Cards */
+    .metric-card {
+        background: #151520;
+        border: 1px solid #303044;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .metric-title { font-size: 12px; font-weight: bold; color: #A1A1AA; }
+    .metric-value { font-size: 28px; font-weight: bold; color: #FFFFFF; }
+    </style>
+    
+    <div class="bubbles-container">
+        <div class="bubble" style="width:20px; height:20px; left:10%; animation-duration:8s;"></div>
+        <div class="bubble" style="width:30px; height:30px; left:30%; animation-duration:12s; animation-delay:2s;"></div>
+        <div class="bubble" style="width:15px; height:15px; left:50%; animation-duration:6s; animation-delay:1s;"></div>
+        <div class="bubble" style="width:25px; height:25px; left:70%; animation-duration:10s; animation-delay:4s;"></div>
+        <div class="bubble" style="width:35px; height:35px; left:85%; animation-duration:14s;"></div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================================================
-# TABS 2+: INDIVIDUAL MEMBER TABS
+# MAIN APPLICATION
 # ============================================================
-for idx, name in enumerate(st.session_state.members.keys()):
-  with tabs[idx + 1]:
-    col_title, col_del = st.columns([6, 1])
-    with col_title:
-      st.markdown(
-          f"<h2 style='color:#FFFFFF;margin-bottom:0px;'>{name.upper()}</h2>",
-          unsafe_allow_html=True,
-      )
-    with col_del:
-      if st.button("REMOVE", key=f"del_{name}"):
-        del st.session_state.members[name]
-        sync_to_cloud()
+st.set_page_config(page_title="CLUSTER ARLEN | TEAM REEYAAA", layout="wide")
+inject_custom_css()
+
+# Session State Initialization
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "members" not in st.session_state:
+    st.session_state.members = None
+
+# --- LOGIN SCREEN ---
+if not st.session_state.authenticated:
+    st.markdown("<h2 style='text-align: center; color: #FFFFFF;'>CLUSTER ARLEN | LOGIN</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #A1A1AA;'>Enter Password to Access System</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        password_input = st.text_input("Password", type="password", label_visibility="collapsed")
+        if st.button("LOGIN", use_container_width=True, type="primary"):
+            if password_input == ACCESS_PASSWORD:
+                st.session_state.authenticated = True
+                # Load cloud data on successful login
+                cloud_data = CloudSync.load_data()
+                st.session_state.members = cloud_data if cloud_data is not None else {}
+                st.rerun()
+            else:
+                st.error("Incorrect Password. Please try again.")
+    st.stop()
+
+# --- HEADER ---
+st.markdown("<div class='main-content'>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; margin-bottom: 0;'>CLUSTER ARLEN</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: #A78BFA; margin-top: 0;'>TEAM REEYAAA WIKI-WIKIIIIII</h3>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #71717A; font-size: 12px;'>Programmed by: @CLA TECHFORGE | Clarence Gabriel Obida | @serclasocials</p>", unsafe_allow_html=True)
+
+# --- CONTROLS ---
+col_head1, col_head2, col_head3 = st.columns([2, 1, 1])
+with col_head1:
+    st.markdown("**TEAM PERFORMANCE SYSTEM**")
+with col_head2:
+    new_member = st.text_input("Name", placeholder="Member Name", label_visibility="collapsed", key="add_input")
+    if st.button("+ COUNT ME IN", use_container_width=True):
+        if new_member and new_member not in st.session_state.members:
+            st.session_state.members[new_member] = {"release": 0, "unrelease": 0, "transfer": 0}
+            CloudSync.save_data(st.session_state.members)
+            st.rerun()
+with col_head3:
+    if st.button("RESET ALL", use_container_width=True):
+        st.session_state.members = {}
+        CloudSync.save_data({})
         st.rerun()
 
-    st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("---")
 
-    # Metrics Layout & Increment Controls
-    m1, m2, m3, m4, m5 = st.columns(5)
+# --- TABS CREATION ---
+tab_titles = ["LEADER DASHBOARD"] + list(st.session_state.members.keys())
+tabs = st.tabs(tab_titles)
 
-    with m1:
-      st.markdown(
-          f'<div class="glass-card"><p'
-          f' style="color:#22C55E;font-weight:bold;font-size:0.9rem;">RELEASE</p><h2'
-          f' style="color:#FFFFFF;margin:0;">{st.session_state.members[name]["release"]}</h2></div>',
-          unsafe_allow_html=True,
-      )
-      b1, b2 = st.columns(2)
-      with b1:
-        if st.button("−", key=f"rel_sub_{name}", use_container_width=True):
-          st.session_state.members[name]["release"] = max(
-              0, st.session_state.members[name]["release"] - 1
-          )
-          st.session_state.current_motivation = random.choice(
-              MOTIVATIONAL_PHRASES
-          )
-          sync_to_cloud()
-          st.rerun()
-      with b2:
-        if st.button("+", key=f"rel_add_{name}", use_container_width=True):
-          st.session_state.members[name]["release"] += 1
-          st.session_state.current_motivation = random.choice(
-              MOTIVATIONAL_PHRASES
-          )
-          sync_to_cloud()
-          st.rerun()
-
-    with m2:
-      st.markdown(
-          f'<div class="glass-card"><p'
-          f' style="color:#EF4444;font-weight:bold;font-size:0.9rem;">UNRELEASE</p><h2'
-          f' style="color:#FFFFFF;margin:0;">{st.session_state.members[name]["unrelease"]}</h2></div>',
-          unsafe_allow_html=True,
-      )
-      b1, b2 = st.columns(2)
-      with b1:
-        if st.button("−", key=f"unrel_sub_{name}", use_container_width=True):
-          st.session_state.members[name]["unrelease"] = max(
-              0, st.session_state.members[name]["unrelease"] - 1
-          )
-          st.session_state.current_motivation = random.choice(
-              MOTIVATIONAL_PHRASES
-          )
-          sync_to_cloud()
-          st.rerun()
-      with b2:
-        if st.button("+", key=f"unrel_add_{name}", use_container_width=True):
-          st.session_state.members[name]["unrelease"] += 1
-          st.session_state.current_motivation = random.choice(
-              MOTIVATIONAL_PHRASES
-          )
-          sync_to_cloud()
-          st.rerun()
-
-    with m3:
-      st.markdown(
-          f'<div class="glass-card"><p'
-          f' style="color:#FACC15;font-weight:bold;font-size:0.9rem;">TRANSFER</p><h2'
-          f' style="color:#FFFFFF;margin:0;">{st.session_state.members[name]["transfer"]}</h2></div>',
-          unsafe_allow_html=True,
-      )
-      b1, b2 = st.columns(2)
-      with b1:
-        if st.button("−", key=f"tr_sub_{name}", use_container_width=True):
-          st.session_state.members[name]["transfer"] = max(
-              0, st.session_state.members[name]["transfer"] - 1
-          )
-          st.session_state.current_motivation = random.choice(
-              MOTIVATIONAL_PHRASES
-          )
-          sync_to_cloud()
-          st.rerun()
-      with b2:
-        if st.button("+", key=f"tr_add_{name}", use_container_width=True):
-          st.session_state.members[name]["transfer"] += 1
-          st.session_state.current_motivation = random.choice(
-              MOTIVATIONAL_PHRASES
-          )
-          sync_to_cloud()
-          st.rerun()
-
-    percentage, deficit = calculate_metrics(
-        st.session_state.members[name]["release"],
-        st.session_state.members[name]["unrelease"],
-    )
-
-    with m4:
-      st.markdown(
-          f'<div class="glass-card"><p'
-          f' style="color:#EF4444;font-weight:bold;font-size:0.9rem;">DEFICIT</p><h2'
-          f' style="color:#FFFFFF;margin:0;">{deficit}</h2><p'
-          f' style="color:#A1A1AA;font-size:0.7rem;margin:0;">AUTO</p></div>',
-          unsafe_allow_html=True,
-      )
-
-    with m5:
-      st.markdown(
-          f'<div class="glass-card"><p'
-          f' style="color:#A78BFA;font-weight:bold;font-size:0.9rem;">PERCENTAGE</p><h2'
-          f' style="color:#FFFFFF;margin:0;">{percentage:.2f}%</h2><p'
-          f' style="color:#A1A1AA;font-size:0.7rem;margin:0;">AUTO</p></div>',
-          unsafe_allow_html=True,
-      )
-
-    # Status Panel
-    rel_val = st.session_state.members[name]["release"]
-    unrel_val = st.session_state.members[name]["unrelease"]
-    if rel_val == 0 and unrel_val == 0:
-      status_text, status_color = "NO DATA", "#A1A1AA"
-    elif percentage >= 85:
-      status_text, status_color = "PASSING", "#22C55E"
+# --- TAB 0: LEADER DASHBOARD ---
+with tabs[0]:
+    st.subheader("LIVE TEAM METRICS OVERVIEW & RANKINGS")
+    
+    total_rel = sum(m["release"] for m in st.session_state.members.values())
+    total_unrel = sum(m["unrelease"] for m in st.session_state.members.values())
+    
+    # Calculate group stats
+    total_calls = total_rel + total_unrel
+    group_perc = (total_rel / total_calls * 100) if total_calls > 0 else 0
+    total_def = sum(max(0, (m["unrelease"] * 6) - m["release"]) for m in st.session_state.members.values())
+    
+    # Summary Cards
+    sc1, sc2, sc3, sc4, sc5 = st.columns(5)
+    sc1.metric("MEMBERS", len(st.session_state.members))
+    sc2.metric("RELEASE", total_rel)
+    sc3.metric("UNRELEASE", total_unrel)
+    sc4.metric("DEFICIT", total_def)
+    sc5.metric("GROUP %", f"{group_perc:.2f}%")
+    
+    st.info(f"💡 {random.choice(MOTIVATIONAL_PHRASES)}")
+    
+    # Data Table
+    table_data = []
+    for name, data in st.session_state.members.items():
+        perc, deficit, status = calculate_metrics(data["release"], data["unrelease"])
+        table_data.append({
+            "TEAM MEMBER": name,
+            "RELEASE": data["release"],
+            "UNRELEASE": data["unrelease"],
+            "TRANSFER": data["transfer"],
+            "DEFICIT": deficit,
+            "PERCENTAGE": perc,
+            "STATUS": status
+        })
+        
+    if table_data:
+        df = pd.DataFrame(table_data)
+        df.sort_values(by="PERCENTAGE", ascending=False, inplace=True)
+        df.insert(0, "RANK", range(1, len(df) + 1))
+        # Format percentage string for display
+        df["PERCENTAGE"] = df["PERCENTAGE"].apply(lambda x: f"{x:.2f}%")
+        st.dataframe(df, use_container_width=True, hide_index=True)
     else:
-      status_text, status_color = "BELOW TARGET", "#EF4444"
+        st.write("No team members added yet.")
 
-    st.markdown(
-        f"""
-        <div style="background-color: #151520; border: 1px solid #303044; padding: 12px; border-radius: 8px; text-align: center; margin-top: 15px;">
-            <p style="color: #A1A1AA; font-size: 0.8rem; margin-bottom: 2px;">CURRENT PERFORMANCE STATUS</p>
-            <h2 style="color: {status_color}; margin-top: 0px; margin-bottom: 0px;">{status_text}</h2>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+# --- TABS 1+: INDIVIDUAL MEMBERS ---
+for idx, member_name in enumerate(st.session_state.members.keys(), start=1):
+    with tabs[idx]:
+        col_title, col_remove = st.columns([4, 1])
+        with col_title:
+            st.markdown(f"<h2>{member_name.upper()}</h2>", unsafe_allow_html=True)
+        with col_remove:
+            if st.button("REMOVE MEMBER", key=f"del_{member_name}", type="primary"):
+                del st.session_state.members[member_name]
+                CloudSync.save_data(st.session_state.members)
+                st.rerun()
+        
+        m_data = st.session_state.members[member_name]
+        perc, deficit, status = calculate_metrics(m_data["release"], m_data["unrelease"])
+        
+        c1, c2, c3, c4, c5 = st.columns(5)
+        
+        def update_metric(member, metric, amount):
+            st.session_state.members[member][metric] = max(0, st.session_state.members[member][metric] + amount)
+            CloudSync.save_data(st.session_state.members)
+            st.rerun()
 
-    # Motivation Panel
-    st.markdown(
-        f'<div'
-        f' class="motivation-box">{st.session_state.current_motivation}</div>',
-        unsafe_allow_html=True,
-    )
+        # Release
+        with c1:
+            st.markdown(f"<div class='metric-card'><div class='metric-title' style='color:#22C55E;'>RELEASE</div><div class='metric-value'>{m_data['release']}</div></div>", unsafe_allow_html=True)
+            cc1, cc2 = st.columns(2)
+            if cc1.button("−", key=f"sub_rel_{member_name}", use_container_width=True): update_metric(member_name, "release", -1)
+            if cc2.button("➕", key=f"add_rel_{member_name}", use_container_width=True): update_metric(member_name, "release", 1)
+            
+        # Unrelease
+        with c2:
+            st.markdown(f"<div class='metric-card'><div class='metric-title' style='color:#EF4444;'>UNRELEASE</div><div class='metric-value'>{m_data['unrelease']}</div></div>", unsafe_allow_html=True)
+            cc1, cc2 = st.columns(2)
+            if cc1.button("−", key=f"sub_unrel_{member_name}", use_container_width=True): update_metric(member_name, "unrelease", -1)
+            if cc2.button("➕", key=f"add_unrel_{member_name}", use_container_width=True): update_metric(member_name, "unrelease", 1)
+
+        # Transfer
+        with c3:
+            st.markdown(f"<div class='metric-card'><div class='metric-title' style='color:#FACC15;'>TRANSFER</div><div class='metric-value'>{m_data['transfer']}</div></div>", unsafe_allow_html=True)
+            cc1, cc2 = st.columns(2)
+            if cc1.button("−", key=f"sub_trans_{member_name}", use_container_width=True): update_metric(member_name, "transfer", -1)
+            if cc2.button("➕", key=f"add_trans_{member_name}", use_container_width=True): update_metric(member_name, "transfer", 1)
+            
+        # Deficit (Auto)
+        with c4:
+            st.markdown(f"<div class='metric-card'><div class='metric-title' style='color:#EF4444;'>DEFICIT</div><div class='metric-value'>{deficit}</div><div style='font-size:10px; color:#71717A;'>AUTO</div></div>", unsafe_allow_html=True)
+
+        # Percentage (Auto)
+        with c5:
+            st.markdown(f"<div class='metric-card'><div class='metric-title' style='color:#A78BFA;'>PERCENTAGE</div><div class='metric-value'>{perc:.2f}%</div><div style='font-size:10px; color:#71717A;'>AUTO</div></div>", unsafe_allow_html=True)
+
+        # Status & Motivation
+        status_color = "#22C55E" if status == "PASSING" else "#EF4444" if status == "BELOW TARGET" else "#71717A"
+        st.markdown(f"**CURRENT PERFORMANCE STATUS:** <span style='color:{status_color}; font-size:20px; font-weight:bold;'>{status}</span>", unsafe_allow_html=True)
+        st.info(random.choice(MOTIVATIONAL_PHRASES))
+
+st.markdown("</div>", unsafe_allow_html=True)
